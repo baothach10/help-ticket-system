@@ -1,0 +1,47 @@
+version: '3.1'
+
+services:
+
+  nginx:
+    container_name: nginx_help_ticket
+    image: 'nginx:stable'
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - help-ticket
+
+  php:
+    container_name: 'help-ticket-app'
+    build:
+      context: ./.docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "9000:9000"
+    networks:
+      - help-ticket
+
+  db:
+    image: mysql
+    container_name: ticket_db_controller
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: ticket_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 123123
+      MYSQL_ROOT_PASSWORD: 123123
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data/db:/var/lib/mysql
+    networks:
+      - help-ticket
+  
+networks:
+  help-ticket:
+    driver: bridge
